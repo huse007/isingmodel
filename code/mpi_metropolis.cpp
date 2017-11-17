@@ -36,6 +36,8 @@ void writeToFile(int, int, double, vec);
 
 int main(int argc, char* argv[])
 {
+  clock_t start,stop;
+  start = clock();
   // Init MPI
   int myRank, numProcs;
   MPI_Init(&argc, &argv);
@@ -57,6 +59,7 @@ int main(int argc, char* argv[])
     t_init = atof(argv[4]);
     t_final = atof(argv[5]);
     t_step = atof(argv[6]);
+    cout<<"1"<<endl;
   }
   
   MPI_Bcast (&nspins, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -72,6 +75,7 @@ int main(int argc, char* argv[])
     string argument = to_string(nspins);
     fileout.append(argument);
     ofile.open(fileout);
+    cout<<"2"<<endl;
   }
   
   /* loop over temperature t*/
@@ -80,12 +84,22 @@ int main(int argc, char* argv[])
     /* Monte Carlo (put results in ExpectationValues)*/
     metropolisSampling(nspins, mc_cycles, t, ExpectationValues);
     /* write to file */
+    cout<<myRank<<" 2.1"<<endl;
     for(int i = 0; i < 5; i++)
       MPI_Allreduce(&ExpectationValues[i], &ExpectationValues[i], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     
-    if(myRank == 0) writeToFile(nspins, mc_cycles*numProcs, t, ExpectationValues);
+    if(myRank == 0){
+      cout<<"3"<<endl;
+      writeToFile(nspins, mc_cycles*numProcs, t, ExpectationValues);
+      
+    }
   }
-  if(myRank == 0) ofile.close();
+  if(myRank == 0){
+    ofile.close();
+    stop = clock();
+    cout<<"Algorithm time: "<<((float) (stop-start)/CLOCKS_PER_SEC)<<"s"<<endl; 
+    cout<<"4"<<endl;
+  }
   MPI_Finalize();
   return 0;
 }
@@ -120,7 +134,8 @@ void metropolisSampling(int nspins, int mc_cycles, double Temperature, vec &Expe
 	  spin_matrix(ix,iy) *= -1.0;  // flip one spin and accept new spin config
 	  MagneticMoment += (double) 2*spin_matrix(ix,iy);
 	  Energy += (double) deltaE;
-	  //cout<<Energy<<endl; //exercise d) Verdier til P(E) histogram 
+	  //cout<<Energy<<endl; //exercise d) Verdier til P(E) histogram
+
 	}
       }
     }
@@ -146,7 +161,7 @@ void initLattice(int nspins, mat &spin_matrix,  double& Energy, double& Magnetic
       MagneticMoment +=  (double) spin_matrix(x,y);
     }
   }
-  spin_matrix.print();
+  //  spin_matrix.print();
   // setup initial energy
   for(int x =0; x < nspins; x++) {
     for (int y= 0; y < nspins; y++){

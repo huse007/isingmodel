@@ -1,5 +1,6 @@
-mpic++ -O3 -o mpi_ising.x mpi_metropolis.cpp
-mpirun -np 4 mpi_ising.x mpi_Lattice 40 100000 2.0 2.4 0.05
+mpic++ -O3 mpi_metropolis.cpp -o mpi_ising.x
+#mpirun -np 4 mpi_metropolis eelodie_mpi 10 10 2.0 2.06 0.05
+mpirun -np 4 mpi_ising.x mpi_Lattice 40 1000000 2.0 2.4 0.05
 #mpirun -np 4 mpi_ising.x mpi_Lattice 60 100000 2.0 2.4 0.05
 #mpirun -np 4 mpi_ising.x mpi_Lattice 80 100000 2.0 2.4 0.05
 #mpirun -np 4 mpi_ising.x mpi_Lattice 100 100000 2.0 2.4 0.05
