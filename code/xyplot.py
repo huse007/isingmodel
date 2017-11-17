@@ -2,19 +2,23 @@ from math import *
 import matplotlib.pyplot as plt
 import sys
 
-temp = []
-energy = []
+x = []
+y = []
 with open(sys.argv[1]) as file:
     for i, line in enumerate(file):
         if line.startswith('>'):
             continue
         line = line.rstrip()
         data = line.split()
-        temp.append(float(data[0]))
-        energy.append(float(data[1]))
+        x.append(float(data[int(sys.argv[2])]))
+        y.append(float(data[int(sys.argv[3])]))
 
-plt.plot(temp,energy)
-plt.xlabel('Temperature')
-plt.ylabel('Energy')
-plt.axis([1.6,2.6,-2.5,0])
+plt.plot(x,y)
+if len(sys.argv) > 4:
+    plt.xlabel(sys.argv[4])
+    plt.ylabel(sys.argv[5])
+else:
+    plt.xlabel('x')
+    plt.ylabel('y')
 plt.show()
+

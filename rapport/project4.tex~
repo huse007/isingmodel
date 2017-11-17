@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage[latin1]{inputenc}
+\usepackage[norsk]{babel}
+\usepackage{amsmath}
+\begin{document}
+\section{Analytic expressions}
+The partition function is given by:
+\begin{align*}
+  Z&= \sum_{i=1}^{M}e^{-\beta E_i}\\
+\end{align*}
+where M is the number of microstates, $\beta = 1/kT$ and $E_i$ is the energy of the system in configuration i.
+The mean energy is given by:
+\begin{align*}
+  \langle E\rangle &= \frac{1}{Z}\sum^{M}_{i=1}E_i e^{-\beta E_i}\\
+  &= \frac{1}{e^{8\beta J}}\left(-16Je^{8\beta J}+16Je^{-8\beta J}\right)\\
+  &= \frac{2}{e^{8\beta J}}\left(-16J\left(e^{8\beta J}-e^{-8\beta J}\right)\right)\\
+\end{align*}
+The susceptibility is given by:
+\begin{align*}
+  \chi &= \frac{1}{k_B T}\left(\sigma_M^2\right)\\
+\end{align*}
+where the variance is given by:
+\begin{align*}
+  \sigma^2_M &= \langle M^2\rangle -\langle M \rangle^2\\
+  &= \frac{1}{Z}\sum^M_{i=1} M_i^2 e^{-\beta E_i}-\left(\frac{1}{Z}\sum^M_{i=1}M_i e^{-\beta E_i}\right)^2\\
+\end{align*}
+The heat capacity is given by:
+\begin{align*}
+  C_V &= \frac{1}{k_B T^2}\left(\angle E^2 \rangle - \langle E \rangle^2 \right)^2\\
+\end{align*}
+The energy of a specific configuration is:
+\begin{align*}
+  E_i &= -J\sum^N_{<kl>}s_k s_l\\
+\end{align*}
+\end{document}

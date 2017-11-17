@@ -1,7 +1,7 @@
 /* SPØRSMÅL 
  * 1. c) Plot energy vs. #MC cycles? En og en kjøring eller printe ut energy ved hver cycle
- * 2. d) Histogrammet for T=1.0 blir rart
- * 3. d) Stemmer verdiene på x aksen -> peak på -700 ?? hvorfor ikke 0
+ * 2. d) Histogrammet for T=1.0 blir rart (det er rikitg)
+ * 3. d) Stemmer verdiene på x aksen -> peak på -700 ?? hvorfor ikke 0 (det er riktig)
 
 /* Run as
   ./metropolis.x ofile npins nMCcycles init_temp final_temp tempstep
@@ -19,6 +19,7 @@
 #include <random>
 #include <armadillo>
 #include <string>
+#include <mpi.h>
 using namespace  std;
 using namespace arma;
 
@@ -35,15 +36,21 @@ void writeToFile(int, int, double, vec);
 
 int main(int argc, char* argv[])
 {
+  // Init MPI
+  int myRank, numProcs;
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+  MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  
   string filename;
   int nspins, mc_cycles;
   double t_init, t_final, t_step;
-  if (argc <= 5) {
+  if (myRank == 0 && argc <= 5) {
     cout << "Invalid command: " << argv[0] << 
       " outputfile spins MC_cycles t_init t_final t_step" << endl;
     exit(1);
   }
-  if (argc > 1) {
+  if (myRank == 0 && argc > 1) {
     filename=argv[1];
     nspins = atoi(argv[2]);
     mc_cycles = atoi(argv[3]);    
@@ -51,11 +58,21 @@ int main(int argc, char* argv[])
     t_final = atof(argv[5]);
     t_step = atof(argv[6]);
   }
+  
+  MPI_Bcast (&nspins, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&t_init, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&t_final, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&t_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);  
+
+
+  
   /* init outfile */
-  string fileout = filename;
-  string argument = to_string(nspins);
-  fileout.append(argument);
-  ofile.open(fileout);
+  if(myRank == 0) {
+    string fileout = filename;
+    string argument = to_string(nspins);
+    fileout.append(argument);
+    ofile.open(fileout);
+  }
   
   /* loop over temperature t*/
   for (double t = t_init; t <= t_final; t+=t_step){
@@ -63,9 +80,13 @@ int main(int argc, char* argv[])
     /* Monte Carlo (put results in ExpectationValues)*/
     metropolisSampling(nspins, mc_cycles, t, ExpectationValues);
     /* write to file */
-    writeToFile(nspins, mc_cycles, t, ExpectationValues);
+    for(int i = 0; i < 5; i++)
+      MPI_Allreduce(&ExpectationValues[i], &ExpectationValues[i], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    
+    if(myRank == 0) writeToFile(nspins, mc_cycles*numProcs, t, ExpectationValues);
   }
-  ofile.close();  
+  if(myRank == 0) ofile.close();
+  MPI_Finalize();
   return 0;
 }
 
@@ -125,7 +146,7 @@ void initLattice(int nspins, mat &spin_matrix,  double& Energy, double& Magnetic
       MagneticMoment +=  (double) spin_matrix(x,y);
     }
   }
-  //  spin_matrix.print();
+  spin_matrix.print();
   // setup initial energy
   for(int x =0; x < nspins; x++) {
     for (int y= 0; y < nspins; y++){
@@ -149,7 +170,7 @@ void writeToFile(int nspins, int mc_cycles, double temperature, vec ExpectationV
   double Mvariance = (M2_ExpectationValues - Mabs_ExpectationValues*Mabs_ExpectationValues)/nspins/nspins;
   ofile << setiosflags(ios::showpoint | ios::uppercase);
   ofile << setw(15) << setprecision(8) << temperature;
-  ofile << setw(15) << setprecision(8) << E_ExpectationValues;///nspins/nspins;
+  ofile << setw(15) << setprecision(8) << E_ExpectationValues/nspins/nspins;
   ofile << setw(15) << setprecision(8) << Evariance/temperature/temperature;
   ofile << setw(15) << setprecision(8) << M_ExpectationValues/nspins/nspins;
   ofile << setw(15) << setprecision(8) << Mvariance/temperature;
