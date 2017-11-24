@@ -1,12 +1,7 @@
-/* SPØRSMÅL 
- * 1. c) Plot energy vs. #MC cycles? En og en kjøring eller printe ut energy ved hver cycle
- * 2. d) Histogrammet for T=1.0 blir rart
- * 3. d) Stemmer verdiene på x aksen -> peak på -700 ?? hvorfor ikke 0
-
 /* Run as
-  ./metropolis.x ofile npins nMCcycles init_temp final_temp tempstep
+  ./ofile.x outputfile npins nMCcycles init_temp final_temp tempstep
    Example: 
-   ./metropolis.x Lattice 100 10000000 2.1 2.4 0.01
+   ./Ising.x Lattice 100 10000000 2.1 2.4 0.001
    Compile: 
    c++ -O3 -std=c++11 -Rpass=loop-vectorize -o Ising.x IsingModel.cpp -larmadillo (-Rpass only with clang)
 */
@@ -35,14 +30,19 @@ void writeToFile(int, int, double, vec);
 
 int main(int argc, char* argv[])
 {
+  /* timing */
+  clock_t start,stop;
+  start = clock();
   string filename;
   int nspins, mc_cycles;
   double t_init, t_final, t_step;
+  /* invalid command */
   if (argc <= 5) {
     cout << "Invalid command: " << argv[0] << 
       " outputfile spins MC_cycles t_init t_final t_step" << endl;
     exit(1);
   }
+  /* place parameters (does not throw exep if ex. argc == 4 */
   if (argc > 1) {
     filename=argv[1];
     nspins = atoi(argv[2]);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
   fileout.append(argument);
   ofile.open(fileout);
   
-  /* loop over temperature t*/
+  /* loop over temperature t */
   for (double t = t_init; t <= t_final; t+=t_step){
     vec ExpectationValues = zeros<mat>(5);
     /* Monte Carlo (put results in ExpectationValues)*/
@@ -65,6 +65,9 @@ int main(int argc, char* argv[])
     /* write to file */
     writeToFile(nspins, mc_cycles, t, ExpectationValues);
   }
+  /* end timing */
+  stop = clock();
+  cout<<"Algorithm time: "<<((float)(stop-start)/CLOCKS_PER_SEC)<<"s"<<endl;
   ofile.close();  
   return 0;
 }
@@ -78,14 +81,20 @@ void metropolisSampling(int nspins, int mc_cycles, double Temperature, vec &Expe
   random_device rd;
   mt19937_64 gen(rd());
   uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
-  mat spin_matrix = zeros<mat>(nspins,nspins);   // init the lattice spin values
-  double Energy = 0.;// init energy 
-  double MagneticMoment = 0.;//init magnetization 
-  initLattice(nspins, spin_matrix, Energy, MagneticMoment);  /* initialize array for expectation values */
-  vec EnergyDifference = zeros<mat>(17); /* setup array for possible energy changes */
+  /* construct a spin_matrix */
+  mat spin_matrix = zeros<mat>(nspins,nspins);   
+  double Energy = 0.; 
+  double MagneticMoment = 0.;
+  /* initialize array for expectation values */
+  initLattice(nspins, spin_matrix, Energy, MagneticMoment);  
+  /* setup array for possible energy changes */
+  vec EnergyDifference = zeros<mat>(17); 
+  /* calculate exp(-beta dE) before MC loop*/
   for( int de =-8; de <= 8; de+=4) EnergyDifference(de+8) = exp(-de/Temperature);
   /* start Monte Carlo cycles */
   for (int cycles = 1; cycles <= mc_cycles; cycles++){
+    int count= 0;
+    /* loop lattice */
     for(int x =0; x < nspins; x++) {
       for (int y= 0; y < nspins; y++){
 	int ix = (int) (RandomNumberGenerator(gen)*(double)nspins);
@@ -95,25 +104,30 @@ void metropolisSampling(int nspins, int mc_cycles, double Temperature, vec &Expe
 	   spin_matrix(periodicBoundary(ix,nspins,-1),iy) +
 	   spin_matrix(ix,periodicBoundary(iy,nspins,1)) +
 	   spin_matrix(periodicBoundary(ix,nspins,1),iy));
+	/* accept config if random<=w */
 	if ( RandomNumberGenerator(gen) <= EnergyDifference(deltaE+8) ) {
-	  spin_matrix(ix,iy) *= -1.0;  // flip one spin and accept new spin config
+	  /* flip one spin */
+	  spin_matrix(ix,iy) *= -1.0;
 	  MagneticMoment += (double) 2*spin_matrix(ix,iy);
 	  Energy += (double) deltaE;
-	  //cout<<Energy<<endl; //exercise d) Verdier til P(E) histogram 
+	  count++;
+	  /* Print values for P(E) histogram in exercise d) */
+	  //cout<<Energy<<endl; 
 	}
       }
     }
     /* update expectation values */
-
     ExpectationValues(0) += Energy;
     ExpectationValues(1) += Energy*Energy;
     ExpectationValues(2) += MagneticMoment;    
     ExpectationValues(3) += MagneticMoment*MagneticMoment; 
     ExpectationValues(4) += fabs(MagneticMoment);
-    if(cycles%1000 == 0) {
+    /* As function of MC cycles in exercise c) */
+    /*if(cycles%100 == 0) {
       double E = ExpectationValues(0) / (double) cycles/nspins/nspins;
-      cout<<cycles<< " " << E << endl;
-    }
+      double M = ExpectationValues(4) / (double) cycles/nspins/nspins;
+      cout<<cycles<< " " << E << " "<<M <<" "<<count<<endl;
+      }*/
   }
 }
 
@@ -122,11 +136,12 @@ void initLattice(int nspins, mat &spin_matrix,  double& Energy, double& Magnetic
   random_device rd;
   mt19937_64 gen(rd());
   uniform_real_distribution<double> RandomNumberGenerator(-1.0,1.0);
-  // setup spin matrix and initial magnetization
+  /* setup spin matrix and initial magnetization */
   for(int x =0; x < nspins; x++) {
     for (int y= 0; y < nspins; y++){
-      spin_matrix(x,y) = 1.0; // spin orientation for the ground state
-      //(RandomNumberGenerator(gen)>0.0) ? spin_matrix(x,y) = 1.0 : spin_matrix(x,y) = -1.0; //random start spin config
+      /* Select spin configuration */
+      //spin_matrix(x,y) = 1.0; // spin orientation for the ground state
+      (RandomNumberGenerator(gen)>0.0) ? spin_matrix(x,y) = 1.0 : spin_matrix(x,y) = -1.0; //random start spin config
       MagneticMoment +=  (double) spin_matrix(x,y);
     }
   }

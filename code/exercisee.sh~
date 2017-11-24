@@ -1,7 +1,0 @@
-c++ -O3 -o Ising.x metropolis.cpp
-./Ising.x eLattice 40 1000 2.0 2.4 0.05 >debug.txt
-python3 xyplot.py eLattice2 0 1 Temp[kT] E/J
-
-#echo "L=2, MC=1000, T=1.0, step=0.1"
-#cat Lattice2
-

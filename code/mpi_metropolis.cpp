@@ -1,16 +1,3 @@
-/* SPØRSMÅL 
- * 1. c) Plot energy vs. #MC cycles? En og en kjøring eller printe ut energy ved hver cycle
- * 2. d) Histogrammet for T=1.0 blir rart (det er rikitg)
- * 3. d) Stemmer verdiene på x aksen -> peak på -700 ?? hvorfor ikke 0 (det er riktig)
-
-/* Run as
-  ./metropolis.x ofile npins nMCcycles init_temp final_temp tempstep
-   Example: 
-   ./metropolis.x Lattice 100 10000000 2.1 2.4 0.01
-   Compile: 
-   c++ -O3 -std=c++11 -Rpass=loop-vectorize -o Ising.x IsingModel.cpp -larmadillo (-Rpass only with clang)
-*/
-
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -36,13 +23,16 @@ void writeToFile(int, int, double, vec);
 
 int main(int argc, char* argv[])
 {
-  clock_t start,stop;
-  start = clock();
+  double start, stop;
+
   // Init MPI
   int myRank, numProcs;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
   MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  // Timing
+  MPI_Barrier(MPI_COMM_WORLD);
+  start = MPI_Wtime();
   
   string filename;
   int nspins, mc_cycles;
@@ -59,13 +49,13 @@ int main(int argc, char* argv[])
     t_init = atof(argv[4]);
     t_final = atof(argv[5]);
     t_step = atof(argv[6]);
-    cout<<"1"<<endl;
   }
   
   MPI_Bcast (&nspins, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast (&t_init, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&t_final, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&t_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);  
+  MPI_Bcast (&mc_cycles, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);  
 
 
   
@@ -75,7 +65,6 @@ int main(int argc, char* argv[])
     string argument = to_string(nspins);
     fileout.append(argument);
     ofile.open(fileout);
-    cout<<"2"<<endl;
   }
   
   /* loop over temperature t*/
@@ -84,23 +73,25 @@ int main(int argc, char* argv[])
     /* Monte Carlo (put results in ExpectationValues)*/
     metropolisSampling(nspins, mc_cycles, t, ExpectationValues);
     /* write to file */
-    cout<<myRank<<" 2.1"<<endl;
     for(int i = 0; i < 5; i++)
       MPI_Allreduce(&ExpectationValues[i], &ExpectationValues[i], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     
     if(myRank == 0){
-      cout<<"3"<<endl;
       writeToFile(nspins, mc_cycles*numProcs, t, ExpectationValues);
       
     }
   }
+  MPI_Barrier(MPI_COMM_WORLD);
+  stop = MPI_Wtime();
+
   if(myRank == 0){
     ofile.close();
-    stop = clock();
-    cout<<"Algorithm time: "<<((float) (stop-start)/CLOCKS_PER_SEC)<<"s"<<endl; 
-    cout<<"4"<<endl;
+    //cout<<"Algorithm time: "<<((float) stop-start)<<endl;
   }
   MPI_Finalize();
+  if(myRank == 0 ) {
+    cout<<"Algorithm time: "<<((float) stop-start)<<endl;
+  }
   return 0;
 }
 

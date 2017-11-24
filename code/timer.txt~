@@ -1,8 +1,0 @@
-mpirun -np 4 mpi_ising.x mpi_Lattice 40 1000 2.0 2.4 0.05
-Algorithm time: 1.41056s
-
-mpirun -np 4 mpi_ising.x mpi_Lattice 40 10000 2.0 2.4 0.05
-Algorithm time: 13.925s
-
-mpirun -np 4 mpi_ising.x mpi_Lattice 40 100000 2.0 2.4 0.05
-Algorithm time: 145.557s
