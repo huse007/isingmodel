@@ -6,7 +6,7 @@ Compile:
 ```
 c++ -O3 -std=c++11 -Rpass=loop-vectorize -o Ising.x IsingModel.cpp -larmadillo (-Rpass only with clang)
 ```
-Run code:
+Run the code with the following arguments:
 ```
 ./ofile.x outputfile npins nMCcycles init_temp final_temp tempstep
 ```
