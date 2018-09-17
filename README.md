@@ -2,6 +2,7 @@
 
 The algorithm is explained in rapport/ising_model.pdf
 
+## Red Hat and Ubuntu
 Compile:
 ```
 c++ -O3 -std=c++11 -Rpass=loop-vectorize -o Ising.x IsingModel.cpp -larmadillo (-Rpass only with clang)
