@@ -2,10 +2,18 @@
 
 The algorithm is explained in rapport/ising_model.pdf
 
-## Red Hat and Ubuntu
+## Ubuntu and Red Hat
+Requirements:
+```
+libarmadillo-dev
+```
 Compile:
 ```
 c++ -O3 -std=c++11 -Rpass=loop-vectorize -o Ising.x IsingModel.cpp -larmadillo (-Rpass only with clang)
+```
+Test script:
+```
+source testrun.sh
 ```
 Run the code with the following arguments:
 ```
