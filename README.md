@@ -1,6 +1,8 @@
 # The Ising Model
 
-The algorithm is explained in rapport/ising_model.pdf
+The Ising model, named after the physicist Ernst Ising, is a mathematical model of ferromagnetism in statistical mechanics. The model consists of discrete variables that represent magnetic dipole moments of atomic spins that can be in one of two states (+1 or −1). The spins are arranged in a graph, usually a lattice, allowing each spin to interact with its neighbors. The model allows the identification of phase transitions, as a simplified model of reality. 
+
+The algorithm and results are explained in rapport/ising_model.pdf
 
 ## Ubuntu and Red Hat
 Requirements:
