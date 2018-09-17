@@ -19,7 +19,7 @@ source testrun.sh
 ```
 Run the code with the following arguments:
 ```
-./ofile.x outputfile npins nMCcycles init_temp final_temp tempstep
+./Ising.x outputfile npins nMCcycles init_temp final_temp tempstep
 ```
 
 Example:
