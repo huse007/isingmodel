@@ -4,8 +4,8 @@ The Ising model, named after the physicist Ernst Ising, is a mathematical model 
 
 The algorithm and results are explained in rapport/ising_model.pdf
 
-## Ubuntu and Red Hat
-Requirements:
+## Ubuntu (apt) and Red Hat (rpm)
+Requires the C++ linear algebra library:
 ```
 libarmadillo-dev
 ```
@@ -26,7 +26,7 @@ Example:
 ```
 ./Ising.x Lattice 100 10000000 2.1 2.4 0.001
 ```
-
+## Parallell Computing
 For big lattices or a high number of monte carlo cycles,
 use MPI. Example:
 ```
