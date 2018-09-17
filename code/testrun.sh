@@ -1,5 +1,5 @@
 #c++ -O3 -std=c++11 -o timing_Ising.x timing_metropolis.cpp                                              
-./Ising.x test2Lattice 100 1000 2.20 2.20 0.001
+./Ising.x test2Lattice 100 10000 2.20 2.20 0.001
 #./timing_Ising.x test2Lattice 60 100 2.20 2.20 0.001
 #./timing_Ising.x test2Lattice 80 100 2.20 2.20 0.001
 #./timing_Ising.x test2Lattice 100 100 2.20 2.20 0.001
