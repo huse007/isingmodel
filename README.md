@@ -1,2 +1,3 @@
-# isingmodel
-The algorithm is described in the rapport.
+# The Ising Model
+
+
