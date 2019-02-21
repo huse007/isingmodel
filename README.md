@@ -6,6 +6,8 @@ The algorithm and results are explained in rapport/ising_model.pdf
 
 Note: Big runs will take several days, so it is recommended to use multiple cores or computers. 
 
+![alt text](https://raw.githubusercontent.com/huse007/Isingmodel/master/rapport/ising.png)
+
 ## Ubuntu (apt) and Red Hat (rpm)
 Requires the C++ linear algebra library:
 ```
